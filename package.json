@@ -1,0 +1,9 @@
+{
+  "name": "meterpams",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "deploy": "wrangler deploy", "dev": "wrangler dev" },
+  "dependencies": { "@neondatabase/serverless": "^1.0.2" },
+  "devDependencies": { "wrangler": "^4.0.0" }
+}
