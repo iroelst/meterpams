@@ -340,6 +340,15 @@ export default {
         }, 400);
       }
 
+      // ID pelanggan dibuat oleh server; pengguna tidak dapat menentukan ID sendiri.
+      if (table === "customers") {
+        const random = new Uint8Array(4);
+        crypto.getRandomValues(random);
+        const suffix = Array.from(random, byte => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
+        const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        body.customer_no = `PEL-${date}-${suffix}`;
+      }
+
       const keys = Object.keys(body).filter(
         key => cols.includes(key) && !READ_ONLY.has(key)
       );
