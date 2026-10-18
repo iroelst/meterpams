@@ -141,7 +141,7 @@ export default {
       try {
         if(parts.length===3 && parts[2]==="organizations" && request.method==="POST") {
           const b=await jsonBody(request);
-          if(!b || !String(b.name||"").trim() || !/^[a-zA-Z0-9._-]{3,60}$/.test(String(b.admin_username||"")) || String(b.admin_password||"").length<12) return response({error:"Nama perusahaan, username admin (3-60 karakter), dan password minimal 12 karakter wajib diisi."},400);
+          if(!b || !String(b.name||"").trim() || !/^[a-zA-Z0-9._-]{3,60}$/.test(String(b.admin_username||"")) || String(b.admin_password||"").length<6) return response({error:"Nama perusahaan, username admin (3-60 karakter), dan password minimal 6 karakter wajib diisi."},400);
           const slug=String(b.slug||b.name).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,80);
           if(!slug) return response({error:"Nama perusahaan tidak bisa dijadikan kode."},400);
           const orgs=await sql`INSERT INTO organizations(name,slug,email,phone,address,status) VALUES(${String(b.name).trim()},${slug},${b.email||null},${b.phone||null},${b.address||null},'active') RETURNING id,name,slug,status`;
