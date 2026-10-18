@@ -196,7 +196,28 @@ export default {
           if(parts[2]==="payments" && parts.length===3) return response({data:await sql`SELECT p.*,o.name AS organization_name FROM subscription_payments p JOIN organizations o ON o.id=p.organization_id ORDER BY p.id DESC LIMIT 500`});
         }
         return response({error:"Endpoint Owner Admin tidak ditemukan atau method tidak didukung."},404);
-      } catch(e) { console.error("owner endpoint",e); return response({error:"Operasi Owner Admin gagal. Periksa data dan migrasi database."},400); }
+      } catch(e) {
+        // Log database diagnostics in Worker logs and show a bounded, useful message to Owner.
+        console.error("owner endpoint", { message: e?.message, code: e?.code, constraint: e?.constraint, detail: e?.detail });
+        const code = String(e?.code || "");
+        const raw = String(e?.message || "");
+        let message = "Operasi Owner Admin gagal.";
+        if (code === "23505") {
+          const constraint = String(e?.constraint || "");
+          if (constraint.includes("username")) message = "Username Admin sudah digunakan. Gunakan username yang berbeda.";
+          else if (constraint.includes("slug")) message = "Perusahaan dengan nama/kode tersebut sudah terdaftar. Periksa daftar perusahaan sebelum mencoba lagi.";
+          else message = "Data duplikat terdeteksi. Periksa apakah perusahaan, tarif, atau tagihan sudah pernah tersimpan.";
+        } else if (code === "23503") {
+          message = "Relasi database belum lengkap. Periksa migrasi multi-tenant dan data yang dirujuk.";
+        } else if (code === "23514" || code === "22P02" || code === "22007" || code === "22008") {
+          message = "Ada nilai yang tidak sesuai format database. Periksa nama, username, tarif, dan tanggal.";
+        } else if (/column .* does not exist|relation .* does not exist|undefined table|undefined column/i.test(raw)) {
+          message = "Struktur database belum sesuai dengan Worker terbaru. Periksa apakah migrasi multi-tenant sudah dijalankan.";
+        } else if (raw) {
+          message += " Detail: " + raw.slice(0, 220);
+        }
+        return response({error:message},400);
+      }
     }
     /* old read-only owner route replaced by the guarded block above */
     if(false && parts[0]==="api" && parts[1]==="owner" && isOwner(user) && request.method==="GET") {
