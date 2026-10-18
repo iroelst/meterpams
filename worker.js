@@ -341,7 +341,7 @@ export default {
       }
 
       // ID pelanggan dibuat oleh server; pengguna tidak dapat menentukan ID sendiri.
-      if (table === "customers") {
+      if (table === "customers" && !String(body.customer_no || "").trim()) {
         const random = new Uint8Array(4);
         crypto.getRandomValues(random);
         const suffix = Array.from(random, byte => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
