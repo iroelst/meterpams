@@ -1,4 +1,3 @@
-
 import { neon } from "@neondatabase/serverless";
 
 const TABLES = {
